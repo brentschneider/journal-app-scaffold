@@ -2,6 +2,10 @@ import React, { Component } from 'react';
 import JournalEntry from './JournalEntry';
 import './JournalPage.css';
 
+import firebase from 'firebase';
+const auth = firebase.auth();
+const database = firebase.database();
+
 class JournalPage extends Component {
     constructor(props) {
         super(props);
@@ -9,6 +13,28 @@ class JournalPage extends Component {
             journalEntries: {},
             entryInput: ''
         }
+    }
+
+    componentDidMount() {
+        if (!auth.currentUser) {
+            alert('Must be logged in to view journal');
+            return this.props.history.push('/');
+        }
+
+        auth.onAuthStateChanged((user) => {
+            if (!user) {
+                this.props.history.push('/');
+            }
+        });
+
+        database.ref(`users/${auth.currentUser.uid}`)
+            .on('value', (snapshot) => {
+                this.setState(() => {
+                    return {
+                        journalEntries: snapshot.val() || {}
+                    };
+                });
+            })
     }
 
     onInputChange = (e) => {
@@ -23,7 +49,9 @@ class JournalPage extends Component {
 
     addEntry = (e) => {
         e.preventDefault();
-        alert('Implement addEntry');
+
+        database.ref(`users/${auth.currentUser.uid}`)
+            .push(this.state.entryInput);
         this.setState(() => {
             return {
                 entryInput: ''

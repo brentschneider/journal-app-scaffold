@@ -2,6 +2,11 @@ import React, { Component } from 'react';
 import { Link } from 'react-router-dom';
 import './NavigationBar.css';
 
+import firebase from 'firebase';
+
+const auth = firebase.auth();
+const provider = new firebase.auth.GoogleAuthProvider();
+
 class NavigationBar extends Component {
     constructor(props) {
         super(props);
@@ -10,12 +15,25 @@ class NavigationBar extends Component {
         }
     }
 
+    componentDidMount() {
+        auth.onAuthStateChanged((user) => {
+            this.setState(() => {
+                return {
+                    isLoggedIn: user ? true : false
+                };
+            });
+        })
+    }
+
     signIn = () => {
-        alert('Implement sign-in');
+        auth.signInWithPopup(provider)
+            .catch((error) => {
+                alert(error.message);
+            });
     }
 
     signOut = () => {
-        alert('Implement sign-out');
+        auth.signOut();
     }
 
     render() {
